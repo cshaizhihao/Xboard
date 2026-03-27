@@ -1,37 +1,37 @@
-# Quick Deployment Guide for 1Panel
+# 1Panel 快速部署指南
 
-This guide explains how to deploy Xboard using 1Panel.
+本文说明如何使用 1Panel 部署 Xboard。
 
-## 1. Environment Preparation
+## 1. 环境准备
 
-Install 1Panel:
+安装 1Panel：
 ```bash
 curl -sSL https://resource.fit2cloud.com/1panel/package/quick_start.sh -o quick_start.sh && \
 sudo bash quick_start.sh
 ```
 
-## 2. Environment Configuration
+## 2. 环境配置
 
-1. Install from App Store:
-   - OpenResty (any version)
-     - ⚠️ Check "External Port Access" to open firewall
-   - MySQL 5.7 (Use MariaDB for ARM architecture)
+1. 在应用商店安装：
+   - OpenResty（任意版本）
+     - ⚠️ 勾选“外部端口访问”，确保防火墙放行
+   - MySQL 5.7（ARM 架构建议使用 MariaDB）
 
-2. Create Database:
-   - Database name: `xboard`
-   - Username: `xboard`
-   - Access rights: All hosts (%)
-   - Save the database password for installation
+2. 创建数据库：
+   - 数据库名：`xboard`
+   - 用户名：`xboard`
+   - 访问权限：所有主机（%）
+   - 请保存数据库密码，安装时会用到
 
-## 3. Deployment Steps
+## 3. 部署步骤
 
-1. Add Website:
-   - Go to "Website" > "Create Website" > "Reverse Proxy"
-   - Domain: Enter your domain
-   - Code: `xboard`
-   - Proxy address: `127.0.0.1:7001`
+1. 新建网站：
+   - 进入“网站” > “创建网站” > “反向代理”
+   - 域名：填写你的域名
+   - 代号：`xboard`
+   - 代理地址：`127.0.0.1:7001`
 
-2. Configure Reverse Proxy:
+2. 配置反向代理：
 ```nginx
 location /ws/ {
     proxy_pass http://127.0.0.1:8076;
@@ -59,26 +59,26 @@ location ^~ / {
     proxy_cache off;
 }
 ```
-> The `/ws/` location enables WebSocket real-time node synchronization via `ws-server`. This service is enabled by default and can be toggled in Admin Panel > System Settings > Server.
+> `/ws/` 用于通过 `ws-server` 实现节点实时同步。该服务默认开启，也可在「后台 > 系统设置 > 服务器」中开关。
 
-3. Install Xboard:
+3. 安装 Xboard：
 ```bash
-# Enter site directory
+# 进入站点目录
 cd /opt/1panel/apps/openresty/openresty/www/sites/xboard/index
 
-# Install Git (if not installed)
+# 安装 Git（未安装时）
 ## Ubuntu/Debian
 apt update && apt install -y git
 ## CentOS/RHEL
 yum update && yum install -y git
 
-# Clone repository
+# 克隆仓库
 git clone -b compose --depth 1 https://github.com/cedar2025/Xboard ./
 
-# Configure Docker Compose
+# 准备 Docker Compose 配置
 ```
 
-4. Edit compose.yaml:
+4. 编辑 compose.yaml：
 ```yaml
 services:
   web:
@@ -149,62 +149,62 @@ networks:
     external: true
 ```
 
-5. Initialize Installation:
+5. 初始化安装：
 ```bash
-# Install dependencies and initialize
+# 安装依赖并初始化
 docker compose run -it --rm web php artisan xboard:install
 ```
 
-⚠️ Important Configuration Notes:
-1. Database Configuration
-   - Database Host: Choose based on your deployment:
-     1. If database and Xboard are in the same network, use `mysql`
-     2. If connection fails, go to: Database -> Select Database -> Connection Info -> Container Connection, and use the "Host" value
-     3. If using external database, enter your actual database host
-   - Database Port: `3306` (default port unless configured otherwise)
-   - Database Name: `xboard` (the database created earlier)
-   - Database User: `xboard` (the user created earlier)
-   - Database Password: Enter the password saved earlier
+⚠️ 重要配置说明：
+1. 数据库配置
+   - 数据库主机（Host）：根据部署情况选择
+     1. 如果数据库与 Xboard 在同一网络，填 `mysql`
+     2. 如果连接失败，去：数据库 -> 目标数据库 -> 连接信息 -> 容器连接，使用其中“Host”值
+     3. 如果使用外部数据库，填写真实数据库地址
+   - 数据库端口：`3306`（除非你改过）
+   - 数据库名：`xboard`
+   - 数据库用户：`xboard`
+   - 数据库密码：填写前面保存的密码
 
-2. Redis Configuration
-   - Choose to use built-in Redis
-   - No additional configuration needed
+2. Redis 配置
+   - 选择使用内置 Redis
+   - 无需额外配置
 
-3. Administrator Information
-   - Save the admin credentials displayed after installation
-   - Note down the admin panel access URL
+3. 管理员信息
+   - 保存安装完成后显示的管理员账号密码
+   - 记录后台访问地址
 
-After configuration, start the services:
+配置完成后启动服务：
 ```bash
 docker compose up -d
 ```
 
-6. Start Services:
+6. 启动服务：
 ```bash
 docker compose up -d
 ```
 
-## 4. Version Update
+## 4. 版本更新
 
-> 💡 Important Note: The update command varies depending on your installation version:
-> - If you installed recently (new version), use this command:
+> 💡 重要：更新命令取决于你安装的版本形态：
+> - 若为较新安装（新版本），使用：
 ```bash
 docker compose pull && \
 docker compose run -it --rm web php artisan xboard:update && \
 docker compose up -d
 ```
-> - If you installed earlier (old version), replace `web` with `xboard`:
+> - 若为较早安装（旧版本），把 `web` 改成 `xboard`：
 ```bash
 docker compose pull && \
 docker compose run -it --rm xboard php artisan xboard:update && \
 docker compose up -d
 ```
-> 🤔 Not sure which to use? Try the new version command first, if it fails, use the old version command.
+> 🤔 不确定用哪个？先试新版本命令，失败再用旧版命令。
 
-## Important Notes
+## 注意事项
 
-- ⚠️ Ensure firewall is enabled to prevent port 7001 exposure to public
-- Service restart is required after code modifications
-- SSL certificate configuration is recommended for secure access
+- ⚠️ 建议启用防火墙，避免 7001 端口直接暴露公网
+- 修改代码后需要重启服务
+- 建议配置 SSL 证书保障访问安全
 
-> The node will automatically detect WebSocket availability during handshake. No extra configuration is needed on the node side. 
+> 节点侧会在握手时自动探测 WebSocket 可用性，无需额外配置。
